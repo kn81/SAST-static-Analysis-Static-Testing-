@@ -1,0 +1,15 @@
+1) Cross-Site Scripting: Reflected ->
+        The method authenticate() in FGLoginController.java sends unvalidated data to a web browser on line 46, which can result in the
+        browser executing malicious code.Sending unvalidated data to a web browser can result in the browser executing malicious code
+          
+          Example 3: The following code enables JavaScript in Android's WebView (by default, JavaScript is disabled) and loads a page based on 
+            the value received from an Android intent.
+            
+            WebView webview = (WebView) findViewById(R.id.webview);
+            webview.getSettings().setJavaScriptEnabled(true);
+            String url = this.getIntent().getExtras().getString("url");
+            webview.loadUrl(url);
+            
+            As in Example 1, data is read directly from the HTTP request and reflected back in the HTTP response. Reflected XSS exploits occur 
+            when an attacker causes a user to supply dangerous content to a vulnerable web application,
+            
