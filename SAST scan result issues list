@@ -142,5 +142,84 @@ CODE
 		</div>
 
 ==========================================================================================
+5) Privacy Violation
+------------------
+Summary
+The method doRegistration() in FGRegisterController.java mishandles confidential information, which can 
+compromise user privacy and is often illegal
+
+Explanation
+Privacy violations occur when:
+
+1. Private user information enters the program.
+
+In this case the data comes from in Validators.java at line 92.
+
+2. The data is written to an external location, such as the console, file system, or network.
+
+In this case the data is passed to in FGRegisterController.java at line 43
+
+Example 1: The following code contains a logging statement that tracks the contents of records added to a database 
+by storing them in a log file. Among other values that are stored, the getPassword() function returns the user-supplied 
+plaintext password associated with the account.
+
+
+pass = getPassword();
+...
+dbmsLog.println(id+":"+pass+":"+type+":"+tstamp);
+
+Example 2: The code below reads username and password for a given site from an Android WebView store and broadcasts them to all the registered receivers.
+
+...
+webview.setWebViewClient(new WebViewClient() {
+public void onReceivedHttpAuthRequest(WebView view,
+HttpAuthHandler handler, String host, String realm) {
+String[] credentials = view.getHttpAuthUsernamePassword(host, realm);
+String username = credentials[0];
+String password = credentials[1];
+Intent i = new Intent();
+i.setAction("SEND_CREDENTIALS");
+i.putExtra("username", username);
+i.putExtra("password", password);
+view.getContext().sendBroadcast(i);
+}
+});
+...
+here are several problems with this example.
+1. First of all, by default, WebView credentials are stored in plaintext and are not hashed
+2. Second, plaintext credentials are broadcast to all the registered receivers, which means that any receiver registered to listen to intents with 
+	the SEND_CREDENTIALS action will receive the message. 
+3. The broadcast is not even protected with a permission to limit the number of recipients, even though in this case, we do not recommend using permissions as a fix.
+
+
+CODE
+------
+static public ArrayList<String> validateRegistrationFields(
+			String firstName, String lastName, String userName, String password) {
+
+		ArrayList<String> errors = new ArrayList<String>();
+		if (!isFormatValid(firstName, FIRST_LAST_NAME_FORMAT))
+			errors.add(Constants.FIRST_NAME_INVALID);
+		if (!isFormatValid(lastName, FIRST_LAST_NAME_FORMAT))
+			errors.add(Constants.LAST_NAME_INVALID);
+		if (!isFormatValid(userName, USERNAME_FORMAT))
+			errors.add(Constants.USERNAME_FORMAT_INVALID);
+		if (!validatePasswordLength(password))
+
+	/* in below code user privacy information is storing in log file */
+
+			errors.add(Constants.PASSWORD_FORMAT_INVALID);
+		return errors;
+	}
+
+Standards and Best Practices
+OWASP 2013
+A6 - Sensitive Data Exposure
+OWASP 2017
+A3 - Sensitive Data Exposure
+OWASP 2014 Mobile Top 10
+M2 - Insecure Data Storage
+
+====================================================================================================
 
             
