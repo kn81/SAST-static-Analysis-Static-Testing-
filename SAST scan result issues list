@@ -12,4 +12,135 @@
             
             As in Example 1, data is read directly from the HTTP request and reflected back in the HTTP response. Reflected XSS exploits occur 
             when an attacker causes a user to supply dangerous content to a vulnerable web application,
+=============================================================================================================
+
+2) Insecure SSL: Android Hostname Verification Disabled
+	The call to setHostnameVerifier() in CustomSSLSocketFactory.java does not verify the hostname when making a SSL connection. 
+	This leaves the application vulnerable to a man-in-the-middle attack.Hostname verification is disabled when making SSL connections.
+
+Explanation
+	Use of AllowAllHostnameVerifier() or SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER essentially turns off hostname verification when using 
+	SSL connections. This is equivalent to trusting all certificates.
+
+Example 1:The application sets the hostname verifier as below.
+	...
+	SSLSocketFactory sf = new CustomSSLSocketFactory(trustStore);
+	sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+	...
+
+This application when trying to connect to https://safesecureserver.banking.com would readily accept a certificate issued to https://hackedserver.
+banking.com.The application would now potentially leak sensitive user information on a broken SSL connection to the hacked server.
+
+Standards and Best Practices
+OWASP 2013
+A6 - Sensitive Data Exposure
+OWASP 2017
+A3 - Sensitive Data Exposure
+OWASP 2014 Mobile Top 10
+M3 - Insufficient Transport Layer Protection
+
+================================================================================================
+3) Insecure Transport
+	The call to Scheme() in CustomSSLSocketFactory.java on line 95 uses an unencrypted protocol instead of an 
+	encrypted protocol to communicate with the server.
+
+Explanation
+All communication over HTTP, FTP or gopher is unauthenticated and unencrypted. It is thus, subject to compromise,
+
+Example 1: The following example reads data using the HTTP protocol (versus using HTTPS).
+	
+	URL url = new URL("http://www.android.com/");
+	HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+	try {
+	InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+	readStream(in);
+	...
+	}
+
+The incoming stream,instream, may have been compromised as it is delivered over an unencrypted and unauthenticated channel.
+
+Standards and Best Practices
+OWASP 2013
+A6 - Sensitive Data Exposure
+OWASP 2017
+A3 - Sensitive Data Exposure
+OWASP 2014 Mobile Top 10
+M3 - Insufficient Transport Layer Protection
+
+Code
+----
+public static HttpClient getNewHttpClient() {
+		try {
+			KeyStore trustStore = KeyStore.getInstance(KeyStore
+					.getDefaultType());
+			trustStore.load(null, null);
+			SSLSocketFactory sf = new CustomSSLSocketFactory(trustStore);
+			sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+			HttpParams params = new BasicHttpParams();
+			SchemeRegistry registry = new SchemeRegistry();
+
+	/* below code uses http instead of HTTPS
+			registry.register(new Scheme("http", PlainSocketFactory
+					.getSocketFactory(), 80));
+       */
+			registry.register(new Scheme("https", sf, 443));
+
+			ClientConnectionManager ccm = new ThreadSafeClientConnManager(
+					params, registry);
+
+			return new DefaultHttpClient(ccm, params);
+		} catch (Exception e) {
+			return new DefaultHttpClient();
+		}
+	}
+
+===============================================================================
+4) Password Management: Insecure Submission
+----------------------------------------
+Summary
+The form in register.html submits a password as part of an HTTP GET request on line 26, which will cause the password to be displayed, 
+logged, and stored in the browser cache.
+
+Explanation
+By convention, the parameters associated with an HTTP GET request are not treated as sensitive data, so web servers log them, proxies 
+cache them, and web browsers do not make an effort to conceal them.
+
+Example 1: In the example below, new user password is submitted via an HTTP GET request.
+
+<form method="get">
+Name of new user: <input type="text" name="username">
+Password for new user: <input type="password" name="user_passwd">
+<input type="submit" name="action" value="Create User">
+</form>
+
+Standards and Best Practices
+OWASP 2013
+A6 - Sensitive Data Exposure
+OWASP 2017
+A3 - Sensitive Data Exposure
+OWASP 2014 Mobile Top 10
+M4 - Unintended Data Leakage
+
+CODE
+-----
+		<div data-role="content" data-theme="a">
+			<form>
+				<label for="firstname">First Name</label> <input type="text"
+					name="firstname" id="firstname" value=""> <label
+					for="lastname">Last Name</label> <input type="text" name="lastname"
+					id="lastname" value=""><label for="username">Username</label>
+				<input type="text" name="username" id="username" value=""> <label
+					for="password">Password</label> <input type="password"
+					name="password" id="password" value=""> <label
+                                 
+                                 /* in below password is sending via HTTP
+                                 -------------------------------------------
+					for="confirmpassword">Confirm Password</label> <input
+					type="password" name="confirmpassword" id="confirmpassword"
+					value=""><a href="#" data-role="button" data-inline="true">Register</a>
+			</form>
+		</div>
+
+==========================================================================================
+
             
