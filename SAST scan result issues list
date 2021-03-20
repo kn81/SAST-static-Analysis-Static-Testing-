@@ -221,5 +221,75 @@ OWASP 2014 Mobile Top 10
 M2 - Insecure Data Storage
 
 ====================================================================================================
+6) Android Bad Practices: Missing Component Permission
+---------------------------------------------------
+On line 68 of AndroidManifest.xml the program does not protect this public component with a permission.
+
+Explanation
+------------------
+Any application can access public components that are not explicitly assigned an access permission in their manifest definition.
+
+Example 1: Below is an example of an Android activity with an intent-filter and no explicit access permission set.
+
+ <activity android:name=".AndroidActivity"/> 
+   <intent-filter android:label="activityName"/> 
+    <action android:name=".someFunAction"/> 
+   </intent-filter> 
+    ... 
+ </activity> 
+
+This activity can be exploited by malicious applications.
+
+
+Standards and Best Practices
+
+OWASP 2013
+•A5 - Security Misconfiguration
+
+
+OWASP 2017
+•A6 - Security Misconfiguration
+
+
+OWASP 2014 Mobile Top 10
+•M5 - Poor Authorization and Authentication
+
+CODE
+----
+<activity
+            android:name=".activities.ViewCheckinActivity"
+            android:exported="true"
+/* below code is vulnerable
+            android:label="@string/view_checkin" >
+*/
+        </activity>
+
+Recommendation
+------------------
+Components without explicit access permissions should be exceptions. Unless, the component is really intended to be 
+accessible to all, developers should protect components from misuse by malicious applications by explicitly 
+the access permissions in the manifest file.
+
+Example 2: Below is the declaration of the activity component from above re-written with explicitly assigned access permission.
+
+ <activity android:name=".AndroidActivity" android:permission="FriendsOnly"/> 
+   <intent-filter android:label="activityName"/> 
+    <action android:name=".someFunAction"/> 
+   </intent-filter> 
+   ... 
+ </activity> 
+
+
+References
+-----------
+1.A2 Broken Access Control, Standards Mapping - OWASP Top 10 2004 - (OWASP 2004)
+2.A6 Security Misconfiguration, Standards Mapping - OWASP Top 10 2010 - (OWASP 2010)
+3.AC, Standards Mapping - FIPS200 - (FISMA)
+4.AC-3 Access Enforcement, Standards Mapping - NIST Special Publication 800-53 Revision 4 - (NIST SP 800-53 Rev.4)
+5.CWE ID 265, Standards Mapping - Common Weakness Enumeration - (CWE)
+
+=============================================================================
+7)
+
 
             
