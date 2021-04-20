@@ -1,0 +1,26 @@
+What errors does static code analysis detect?
+================================================
+Authentication code reviews
+
+Access control level code reviews
+
+Session management code reviews
+
+Input/Output validation reviews/Centralized validation routine
+
+Encryption, Encoding, Hashing, encryption etc code reviews
+
+Auditing and logging code reviews
+
+Third party libaries reviews
+
+Configuration and deployment code review
+
+Buffer Overflow
+Null Pointer Dereference
+SQL Injection
+Array Index Out of Bounds
+Memory Leaks
+Concurrency Issues
+Deadlocks
+Divided by Zero and so on
